@@ -1,11 +1,60 @@
 [project]
-name = "PyMico"
+name = "pymico"
 version = "0.1.0"
-description = "Use FastApi to build python microservices"
+description = "Use FastAPI to build Python microservices"
 authors = [{ name = "Rem", email = "yl16221218@163.com" }]
 readme = "README.md"
-requires-python = ">=3.8"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+
+# 核心运行依赖
 dependencies = [
     "fastapi",
-    "uvicorn[standard]"
+    "uvicorn",
 ]
+
+# 可选依赖：开发环境
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.6",
+    "pytest",
+    "black",
+    "isort",
+    "ruff",
+    "deptry"
+]
+
+# 设置项目为可安装模块（可选）
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+# mypy 类型检查配置
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
+warn_return_any = true
+
+# ruff（语法检查 + 自动修复）
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "F", "I", "B"]
+ignore = ["E501"]
+
+# isort（import 排序）
+[tool.isort]
+profile = "black"
+
+# black（代码格式化）
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+# deptry 忽略规则（避免对 dev 工具报错）
+[tool.deptry.per_rule_ignores]
+DEP002 = ["mypy", "uvicorn", "pytest", "black", "isort", "deptry", "ruff"]

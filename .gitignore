@@ -1,4 +1,99 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Pytest cache
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Virtual environment
 .venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# uv.lock (uv package manager lock file)
+uv.lock
+
+# VSCode settings
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Coverage reports
+.coverage
+
+# Black cache
+.black_cache/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Local env files
 .env
+.env.*.local
+
+# PyMico egg-info (or your project *.egg-info)
+*.egg-info/
