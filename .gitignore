@@ -24,6 +24,7 @@ var/
 *.egg
 *.manifest
 *.spec
+.ruff_cache
 
 # Installer logs
 pip-log.txt

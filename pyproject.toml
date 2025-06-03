@@ -21,7 +21,8 @@ dev = [
     "black",
     "isort",
     "ruff",
-    "deptry"
+    "deptry",
+    "pre-commit",
 ]
 
 # 设置项目为可安装模块（可选）
@@ -38,6 +39,7 @@ check_untyped_defs = true
 disallow_untyped_defs = true
 warn_unused_ignores = true
 warn_return_any = true
+disable_error_code = ["misc"]
 
 # ruff（语法检查 + 自动修复）
 [tool.ruff]
