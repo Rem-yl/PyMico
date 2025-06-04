@@ -9,7 +9,9 @@ requires-python = ">=3.10"
 
 # 核心运行依赖
 dependencies = [
+    "bcrypt>=4.3.0",
     "fastapi",
+    "pydantic>=2.11.5",
     "uvicorn",
 ]
 
@@ -45,6 +47,8 @@ disable_error_code = ["misc"]
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "B"]
 ignore = ["E501"]
 

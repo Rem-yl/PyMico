@@ -68,8 +68,6 @@ env/
 env.bak/
 venv.bak/
 
-# uv.lock (uv package manager lock file)
-uv.lock
 
 # VSCode settings
 .vscode/
