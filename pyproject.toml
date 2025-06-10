@@ -42,6 +42,7 @@ disallow_untyped_defs = true
 warn_unused_ignores = true
 warn_return_any = true
 disable_error_code = ["misc"]
+explicit_package_bases = true
 
 # ruff（语法检查 + 自动修复）
 [tool.ruff]
