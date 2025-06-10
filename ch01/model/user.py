@@ -12,9 +12,9 @@ class User(BaseModel):
 
 
 class ValidUser(BaseModel):
-    id: UUID
-    username: str
-    password: str
+    id: Optional[UUID]
+    username: Optional[str]
+    password: Optional[str]
     passphrase: str
 
 
