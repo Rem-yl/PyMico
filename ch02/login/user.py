@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Dict, List
 from uuid import UUID, uuid1
 
 from background import audit_log_transaction
@@ -13,8 +13,8 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
-pending_users: Dict[UUID, Any] = {}
-approved_users: Dict[UUID, Any] = {}
+pending_users: Dict[UUID, Tourist] = {}
+approved_users: Dict[UUID, Tourist] = {}
 
 
 class Signup(BaseModel):
@@ -50,7 +50,7 @@ def signup(signup: Signup) -> JSONResponse:
             tours=[],
         )
         tourist_json = jsonable_encoder(tourist)
-        pending_users[userid] = tourist_json
+        pending_users[userid] = tourist
         return JSONResponse(content=tourist_json, status_code=status.HTTP_201_CREATED)
     except Exception as _:
         return JSONResponse(
