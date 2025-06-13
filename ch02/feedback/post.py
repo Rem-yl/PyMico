@@ -7,9 +7,9 @@ from background import audit_log_transaction
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from handler import PostFeedbackException
+from handler import PostFeedbackException, PostRatingException
 from login import approved_users
-from places import Post, tours
+from places import Post, StarRating, tours
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -42,3 +42,15 @@ def post_tourist_feedback(
     )
     assess_json = jsonable_encoder(assessment)
     return JSONResponse(content=assess_json, status_code=200)
+
+
+@router.post("/feedback/update/rating")
+def update_tour_rating(assess_id: UUID, new_rating: StarRating) -> JSONResponse:
+    if feedback_tour.get(assess_id) is None:
+        raise PostRatingException(status_code=403, detail="tour assessment invalid")
+
+    tid = feedback_tour[assess_id].tour_id
+    tours[tid].ratings = (tours[tid].ratings + new_rating) / 2
+    tour_json = jsonable_encoder(tours[tid])
+
+    return JSONResponse(content=tour_json, status_code=200)

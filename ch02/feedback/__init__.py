@@ -1,3 +1,3 @@
-from .post import Assessment, feedback_tour
+from .post import Assessment, feedback_tour, router
 
-__all__ = ["feedback_tour", "Assessment"]
+__all__ = ["router", "feedback_tour", "Assessment"]
