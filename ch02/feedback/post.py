@@ -11,6 +11,7 @@ from handler import PostFeedbackException, PostRatingException
 from login import approved_users
 from places import Post, StarRating, tours
 from pydantic import BaseModel
+from utils import check_post_owner
 
 router = APIRouter()
 
@@ -64,3 +65,24 @@ async def show_tourist_post(tourist_id: UUID) -> JSONResponse:
     tourist_posts_json = jsonable_encoder(tourist_posts)
 
     return JSONResponse(content=tourist_posts_json, status_code=200)
+
+
+@router.delete("/feedback/delete")
+async def delete_tourist_feedback(assess_id: UUID, tourist_id: UUID) -> JSONResponse:
+    if approved_users.get(tourist_id) is None and feedback_tour.get(assess_id):
+        raise PostFeedbackException(
+            detail="tourist and tour details invalid", status_code=403
+        )
+
+    post_delete = [
+        access for access in feedback_tour.values() if access.id == assess_id
+    ]
+
+    for key in post_delete:
+        is_owner = await check_post_owner(feedback_tour, assess_id, tourist_id)
+        if is_owner:
+            del feedback_tour[key.id]
+
+    return JSONResponse(
+        content={"message": f"deleted posts of {tourist_id}"}, status_code=200
+    )

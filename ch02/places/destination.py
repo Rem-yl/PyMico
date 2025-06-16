@@ -9,7 +9,6 @@ from fastapi import APIRouter, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
-from login import approved_users
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -205,6 +204,8 @@ def check_recommended_tour(resp: Response) -> List[Tuple[UUID, Tour]]:
 
 @router.get("/ch02/tourist/tour/booked")
 def show_booked_tours(tourist_id: UUID) -> List[TourBasicInfo]:
+    from login import approved_users
+
     if approved_users.get(tourist_id) is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
