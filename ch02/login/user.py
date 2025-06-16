@@ -38,7 +38,7 @@ class Tourist(BaseModel):
 
 
 @router.post("/ch02/user/signup/")
-def signup(signup: Signup) -> JSONResponse:
+async def signup(signup: Signup) -> JSONResponse:
     try:
         userid = uuid1()
         login = User(id=userid, username=signup.username, password=signup.password)
@@ -60,7 +60,7 @@ def signup(signup: Signup) -> JSONResponse:
 
 
 @router.post("/ch02/user/login")
-def login(login: User, bg_task: BackgroundTasks) -> JSONResponse:
+async def login(login: User, bg_task: BackgroundTasks) -> JSONResponse:
     try:
         signup_json = jsonable_encoder(approved_users[login.id])
         bg_task.add_task(
@@ -73,3 +73,28 @@ def login(login: User, bg_task: BackgroundTasks) -> JSONResponse:
             content={"message": "invalid operation"},
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+@router.get("/ch01/user/login/{username}/{password}")
+async def user_login(
+    username: str, password: str, bg_task: BackgroundTasks
+) -> JSONResponse:
+    tourist_list = [
+        tourist
+        for tourist in approved_users.values()
+        if tourist.login.username == username and tourist.login.password == password
+    ]
+
+    if tourist_list is None:
+        return JSONResponse(
+            content={"message": "invalid operation"},
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+    else:
+        tourist = tourist_list[0]
+        tour_json = jsonable_encoder(tourist_list)
+        bg_task.add_task(
+            audit_log_transaction, tourist_id=str(tourist.login.id), message="login"
+        )
+
+        return JSONResponse(content=tour_json, status_code=status.HTTP_200_OK)

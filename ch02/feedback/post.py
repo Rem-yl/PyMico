@@ -54,3 +54,13 @@ def update_tour_rating(assess_id: UUID, new_rating: StarRating) -> JSONResponse:
     tour_json = jsonable_encoder(tours[tid])
 
     return JSONResponse(content=tour_json, status_code=200)
+
+
+@router.get("/feedback/list")
+async def show_tourist_post(tourist_id: UUID) -> JSONResponse:
+    tourist_posts = [
+        assess for assess in feedback_tour.values() if assess.tour_id == tourist_id
+    ]
+    tourist_posts_json = jsonable_encoder(tourist_posts)
+
+    return JSONResponse(content=tourist_posts_json, status_code=200)

@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum, IntEnum
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from uuid import UUID, uuid1
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
+from login import approved_users
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -179,3 +181,36 @@ def add_tour_destination(tour_input: TourInput) -> JSONResponse:
             content={"message": f"invalid tour {e}"},
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+@router.get("/ch01/destinations/list/all")
+def list_tour_destinations() -> JSONResponse:
+    tours_json = jsonable_encoder(tours)
+    resp_header = {
+        "X-Access-Tours": "Try Us",
+        "Set-Cookie": "AppName=ITS; Max-Age=3600; Version=1",
+    }
+
+    return JSONResponse(content=tours_json, headers=resp_header)
+
+
+@router.get("/ch02/destinations/mostbooked")
+def check_recommended_tour(resp: Response) -> List[Tuple[UUID, Tour]]:
+    resp.headers["X-Access-Tours"] = "Try Us"
+    resp.headers["X-Contact_details"] = "rem"
+    ranked_desc_rates = sorted(tours.items(), key=lambda x: x[1].ratings, reverse=True)
+
+    return ranked_desc_rates
+
+
+@router.get("/ch02/tourist/tour/booked")
+def show_booked_tours(tourist_id: UUID) -> List[TourBasicInfo]:
+    if approved_users.get(tourist_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="details are missing",
+            headers={"X-InputError": "Missing tourist ID"},
+        )
+
+    tours: List[TourBasicInfo] = approved_users[tourist_id].tours
+    return tours
