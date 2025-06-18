@@ -13,8 +13,10 @@ class User(BaseModel):
     id: UUID
     username: str
     password: str
+    is_admin: bool = False
 
 
 class UserOut(BaseModel):
     id: UUID
     username: str
+    is_admin: bool = False

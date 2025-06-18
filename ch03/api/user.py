@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from database import UserDatabase, get_user_db
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from model import UserOut
@@ -21,14 +21,11 @@ def list_users(db: Annotated[UserDatabase, Depends(get_user_db)]) -> JSONRespons
             "data": jsonable_encoder(users_out),
             "error": None,
         }
-    except Exception as e:
-        msg = {
-            "message": "Error retrieving users",
-            "data": None,
-            "error": str(e),
-        }
 
-    return JSONResponse(content=msg, status_code=200)
+        return JSONResponse(content=msg, status_code=200)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}") from e
 
 
 @router.post("/users/add")
@@ -42,19 +39,19 @@ def add_user(
             "data": None,
             "error": None,
         }
-    except Exception as e:
-        msg = {
-            "message": "Error adding user",
-            "data": None,
-            "error": str(e),
-        }
 
-    return JSONResponse(content=msg, status_code=201)
+        return JSONResponse(content=msg, status_code=201)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error adding user: {str(e)}"
+        ) from e
 
 
 @router.delete("/users/delete")
 def delete_user(
-    username: str, db: Annotated[UserDatabase, Depends(get_user_db)]
+    username: str,
+    db: Annotated[UserDatabase, Depends(get_user_db)],
 ) -> JSONResponse:
     try:
         db.delete_user(username)
@@ -63,11 +60,10 @@ def delete_user(
             "data": None,
             "error": None,
         }
-    except Exception as e:
-        msg = {
-            "message": "Error deleting user",
-            "data": None,
-            "error": str(e),
-        }
 
-    return JSONResponse(content=msg, status_code=200)
+        return JSONResponse(content=msg, status_code=200)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error deleting user: {str(e)}"
+        ) from e
