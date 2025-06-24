@@ -4,9 +4,12 @@ from uuid import uuid4
 from fastapi import FastAPI, Request, Response
 from gateway.api_router import router as gateway_router
 from loguru import logger
+from middleware.exception_handler_middleware import exception_handler_middleware
+from student_mgt.student_main import student_app as student_app
 
 app = FastAPI()
 app.include_router(gateway_router)
+app.mount("/ch04/student", student_app)
 
 logger.add(
     "info.log",
@@ -14,6 +17,8 @@ logger.add(
     level="INFO",
     enqueue=True,
 )
+
+app.middleware("http")(exception_handler_middleware)
 
 
 @app.middleware("http")

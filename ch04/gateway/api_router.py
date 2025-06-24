@@ -9,7 +9,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{portal_id}")
+@router.get("/{portal_id}", response_model=None)
 async def handle_portal(portal_id: str) -> Union[RedirectResponse, Response]:
     """
     Handles requests to the API gateway and redirects based on the portal_id.
