@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import HTMLResponse, JSONResponse
 from student_mgt.controllers.admin import router as admin_router
+from student_mgt.controllers.assignments import router as assignments_router
 from student_mgt.controllers.reservations import router as reservations_router
 
 student_app = FastAPI(
@@ -13,6 +14,9 @@ student_app.include_router(
     reservations_router, prefix="/reservations", tags=["reservations"]
 )
 student_app.include_router(admin_router, prefix="/admin", tags=["admin"])
+student_app.include_router(
+    assignments_router, prefix="/assignments", tags=["assignments"]
+)
 
 
 @student_app.get("/docs", include_in_schema=False)
