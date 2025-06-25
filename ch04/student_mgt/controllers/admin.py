@@ -119,3 +119,16 @@ def update_profile(
         },
         status_code=200,
     )
+
+
+@router.get("/profile/list/all")
+def list_students() -> JSONResponse:
+    student_service: StudentService = StudentService()
+    student_list = student_service.list_all()
+    return JSONResponse(
+        content={
+            "message": "List of all students",
+            "data": jsonable_encoder(student_list),
+        },
+        status_code=200,
+    )
