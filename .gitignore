@@ -96,3 +96,5 @@ venv.bak/
 
 # PyMico egg-info (or your project *.egg-info)
 *.egg-info/
+
+data/

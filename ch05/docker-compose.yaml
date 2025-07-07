@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 134718  # 设置 root 用户密码
+      MYSQL_DATABASE: test            # 初始化数据库
+      MYSQL_USER: rem                   # 创建的用户
+      MYSQL_PASSWORD: 134718      # 用户密码
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql  # 映射到本地目录

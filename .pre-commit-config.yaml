@@ -18,6 +18,7 @@ repos:
       - id: mypy
         additional_dependencies:
           - types-requests
+          - types-PyYAML
         args: ["--strict"]
 
   # 代码风格检查（ruff，支持 flake8/pylint/radon 等）
