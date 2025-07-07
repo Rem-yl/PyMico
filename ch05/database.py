@@ -1,9 +1,13 @@
+from pathlib import Path
+
 import yaml
 from sqlalchemy.orm import declarative_base
 
 
-def load_mysql_url(yaml_path: str) -> str:
-    with open(yaml_path, "r", encoding="utf-8") as f:
+def load_mysql_url(config_file: str) -> str:
+    config_path = Path(__file__).parent / config_file
+
+    with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
     mysql_conf = config["mysql"]

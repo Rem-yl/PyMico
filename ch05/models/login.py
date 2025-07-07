@@ -5,6 +5,17 @@ from sqlalchemy import Column, Date, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 
+class Signup(Base):
+    __tablename__ = "signup"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, index=False)
+    password = Column(String(50), unique=False, index=False)
+
+    def __repr__(self) -> str:
+        return f"SignUp(id={self.id}, username={self.username})"
+
+
 class Login(Base):
     __tablename__ = "login"
 

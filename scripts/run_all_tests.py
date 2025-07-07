@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,9 +25,17 @@ def main() -> None:
 
     failed = False
     for test_dir in test_dirs:
+        chapter_dir = test_dir.parent  # chXX
         if has_test_files(test_dir):
             print(f"🔍 Running tests in: {test_dir}")
-            result = subprocess.run(["pytest", str(test_dir)])
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(chapter_dir)
+
+            result = subprocess.run(
+                ["pytest", str(test_dir)],
+                env=env,
+            )
+
             if result.returncode != 0:
                 failed = True
         else:
