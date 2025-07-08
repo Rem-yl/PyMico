@@ -1,7 +1,8 @@
 from pathlib import Path
 
 import yaml
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 
 def load_mysql_url(config_file: str) -> str:
@@ -19,4 +20,6 @@ def load_mysql_url(config_file: str) -> str:
 
 
 DATABASE_URL = load_mysql_url("config.yaml")
+engine = create_engine(DATABASE_URL, echo=True)
+SessionFactory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

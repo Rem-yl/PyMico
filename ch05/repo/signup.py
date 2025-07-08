@@ -1,81 +1,186 @@
-from typing import List
-
+from database import Base
 from log import logger
-from models.login import Signup
+from models.data.signup import Member, SignUp, Trainer
 from sqlalchemy.orm import Session
 
 
-class SignupRepository:
+class SignUpRepo:
+    _init = True
+
     def __init__(self, sess: Session) -> None:
         self.sess = sess
+        if self._init:
+            Base.metadata.create_all(self.sess.bind)
+            self._init = False
 
-    def insert_signup(self, signup: Signup) -> bool:
+    def add(self, model: SignUp) -> bool:
         try:
-            # 重复性检查（是否已有相同 username）
-            existing = (
-                self.sess.query(Signup).filter_by(username=signup.username).first()
+            exist_signup = (
+                self.sess.query(SignUp).filter_by(username=model.username).first()
             )
-            if existing:
+            if exist_signup:
                 logger.warning(
-                    f"Signup failed: username '{signup.username}' already exists."
+                    f"SignUp failed: username '{model.username}' already exists."
                 )
                 return True
 
-            # 插入数据
-            self.sess.add(signup)
+            self.sess.add(model)
             self.sess.commit()
-            logger.info(f"Signup successful for user: {signup.username}")
+            logger.info(f"SignUp successful for user: {model.username}")
             return True
 
         except Exception as e:
             self.sess.rollback()
-            logger.error(f"Error during signup for user {signup.username}: {e}")
+            logger.error(f"Error during SignUp for user {model.username}: {e}")
             return False
 
-    def update_signup(self, id: int, new_signup: Signup) -> bool:
+    def update(self, model: SignUp, new_model: SignUp) -> bool:
         try:
-            existing_signup = self.sess.query(Signup).filter(Signup.id == id).first()
-            if not existing_signup:
-                logger.warning(f"Signup with id {id} not found for update.")
+            exist_signup = (
+                self.sess.query(SignUp).filter_by(username=model.username).first()
+            )
+
+            if exist_signup is None:
+                logger.warning(
+                    f"Update failed: username '{model.username}' does not exist."
+                )
                 return False
 
-            existing_signup.username = new_signup.username
-            existing_signup.password = new_signup.password
-            self.sess.commit()
-            logger.info(
-                f"Signup updated successfully for user: {existing_signup.username}"
-            )
-        except Exception as e:
-            self.sess.rollback()
-            logger.error(f"Error updating signup for user {new_signup.username}: {e}")
-            return False
-
-        return True
-
-    def delete_signup(self, id: int) -> bool:
-        try:
-            existing_signup = self.sess.query(Signup).filter(Signup.id == id).first()
-            if not existing_signup:
-                logger.warning(f"Signup with id {id} not found for deletion.")
+            if model.password != exist_signup.password:
+                logger.warning(
+                    f"Update failed: invalid password for username '{model.username}'."
+                )
                 return False
 
-            self.sess.delete(existing_signup)
+            exist_signup.username = new_model.username
+            exist_signup.password = new_model.password
+            exist_signup.user_type = new_model.user_type
             self.sess.commit()
-            logger.info(
-                f"Signup deleted successfully for user: {existing_signup.username}"
-            )
+            logger.info(f"Update successful for user: {model.username}")
+            return True
+
         except Exception as e:
             self.sess.rollback()
-            logger.error(f"Error deleting signup with id {id}: {e}")
+            logger.error(f"Error during Update for user {model.username}: {e}")
             return False
 
-        return True
-
-    def get_all(self) -> List[Signup]:
+    def delete(self, username: str, password: str) -> bool:
         try:
-            signups: List[Signup] = self.sess.query(Signup).all()
-            logger.info(f"Retrieved {len(signups)} signups.")
-            return signups
+            signup = self.sess.query(SignUp).filter_by(username=username).first()
+            if signup is None:
+                logger.warning(f"Delete failed: username '{username}' does not exist.")
+                return False
+
+            if signup.password != password:
+                logger.warning(
+                    f"Delete failed: invalid password for username '{username}'."
+                )
+                return False
+
+            self.sess.delete(signup)
+            self.sess.commit()
+            logger.info(f"Delete successful for user: {username}")
+            return True
+
         except Exception as e:
-            logger.error(f"Error retrieving signups: {e}")
-            return []
+            self.sess.rollback()
+            logger.error(f"Error during Delete for user {username}: {e}")
+            return False
+
+
+class MemberSignupRepo:
+    def __init__(self, sess: Session) -> None:
+        self.sess = sess
+
+    def add(self, model: Member) -> bool:
+        try:
+            exist_member = (
+                self.sess.query(Member).filter_by(username=model.username).first()
+            )
+            if exist_member:
+                logger.warning(
+                    f"MemberSignUp failed: username '{model.username}' already exists."
+                )
+                return True
+
+            self.sess.add(model)
+            self.sess.commit()
+            logger.info(f"MemberSignUp successful for user: {model.username}")
+            return True
+
+        except Exception as e:
+            self.sess.rollback()
+            logger.error(f"Error during MemberSignUp for user {model.username}: {e}")
+            return False
+
+    def delete(self, username: str, password: str) -> bool:
+        try:
+            member = self.sess.query(Member).filter_by(username=username).first()
+            if member is None:
+                logger.warning(f"Delete failed: username '{username}' does not exist.")
+                return False
+
+            if member.password.scalar() != password:
+                logger.warning(
+                    f"Delete failed: invalid password for username '{username}'."
+                )
+                return False
+
+            self.sess.delete(member)
+            self.sess.commit()
+            logger.info(f"Delete successful for user: {username}")
+            return True
+
+        except Exception as e:
+            self.sess.rollback()
+            logger.error(f"Error during Delete for user {username}: {e}")
+            return False
+
+
+class TrainerSignupRepo:
+    def __init__(self, sess: Session) -> None:
+        self.sess = sess
+
+    def add(self, model: Trainer) -> bool:
+        try:
+            exist_trainer = (
+                self.sess.query(Trainer).filter_by(username=model.username).first()
+            )
+            if exist_trainer:
+                logger.warning(
+                    f"TrainerSignUp failed: username '{model.username}' already exists."
+                )
+                return True
+
+            self.sess.add(model)
+            self.sess.commit()
+            logger.info(f"TrainerSignUp successful for user: {model.username}")
+            return True
+
+        except Exception as e:
+            self.sess.rollback()
+            logger.error(f"Error during TrainerSignUp for user {model.username}: {e}")
+            return False
+
+    def delete(self, username: str, password: str) -> bool:
+        try:
+            trainer = self.sess.query(Trainer).filter_by(username=username).first()
+            if trainer is None:
+                logger.warning(f"Delete failed: username '{username}' does not exist.")
+                return False
+
+            if trainer.password.scalar() != password:
+                logger.warning(
+                    f"Delete failed: invalid password for username '{username}'."
+                )
+                return False
+
+            self.sess.delete(trainer)
+            self.sess.commit()
+            logger.info(f"Delete successful for user: {username}")
+            return True
+
+        except Exception as e:
+            self.sess.rollback()
+            logger.error(f"Error during Delete for user {username}: {e}")
+            return False
