@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import IntEnum
 
 from pydantic import BaseModel
@@ -35,12 +36,33 @@ class SignUpReq(BaseModel):
         from_attributes = True
 
 
+class SignUpOut(BaseModel):
+    id: int
+    username: str
+    user_type: UserType
+    date_approved: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class MemberReq(BaseModel):
     signup_id: int
 
     age: int
     level: MemberLevel
     gender: Gender
+
+
+class MemberOut(BaseModel):
+    id: int
+    signup: SignUpOut
+    age: int
+    level: MemberLevel
+    gender: Gender
+
+    class Config:
+        from_attributes = True
 
 
 class TrainerReq(BaseModel):

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from database import Base
 from log import logger
@@ -89,6 +89,14 @@ class SignUpRepo:
             logger.error(f"Error during Delete for user {username}: {e}")
             return False
 
+    def list_signups(self) -> List[SignUp]:
+        try:
+            signups: List[SignUp] = self.sess.query(SignUp).all()
+            return signups
+        except Exception as e:
+            logger.error(f"Error during list_signups: {e}")
+            return []
+
 
 class MemberSignupRepo:
     def __init__(self, sess: Session) -> None:
@@ -140,6 +148,14 @@ class MemberSignupRepo:
             self.sess.rollback()
             logger.error(f"Error during Delete for user {username}: {e}")
             return False
+
+    def list_members(self) -> List[Member]:
+        try:
+            members: List[Member] = self.sess.query(Member).all()
+            return members
+        except Exception as e:
+            logger.error(f"Error during list_members: {e}")
+            return []
 
 
 class TrainerSignupRepo:

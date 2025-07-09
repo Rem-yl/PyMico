@@ -1,10 +1,11 @@
-from typing import Annotated, Generator, Union
+from typing import Annotated, Generator, List, Optional, Union
 
 from database import SessionFactory
 from fastapi import APIRouter, Depends, Form, Query, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from models.data.signup import Member, SignUp
-from models.req.signup import SignUpReq, UserReq, UserType
+from models.req.signup import MemberOut, SignUpOut, SignUpReq, UserReq, UserType
 from repo.signup import MemberSignupRepo, SignUpRepo
 from sqlalchemy.orm import Session
 
@@ -116,6 +117,18 @@ def delete_signup(
     )
 
 
+@router.get("/signup/list")
+def list_signups(sess: Annotated[Session, Depends(sess_db)]) -> JSONResponse:
+    repo: SignUpRepo = SignUpRepo(sess)
+
+    orm_list: List[SignUp] = repo.list_signups()
+
+    # 手动转换为 Pydantic 模型，再转成 dict
+    data = [SignUpOut.from_orm(obj) for obj in orm_list]
+
+    return JSONResponse(content=jsonable_encoder(data), status_code=200)
+
+
 @router.get("/signup/member/add", response_class=HTMLResponse)
 def get_member_form(signup_id: int = Query(...)) -> HTMLResponse:
     html_content = f"""
@@ -140,13 +153,15 @@ def get_member_form(signup_id: int = Query(...)) -> HTMLResponse:
 def add_member(
     sess: Annotated[Session, Depends(sess_db)],
     signup_id: int = Form(...),
+    trainer_id: Optional[int] = Form(None),
     age: int = Form(...),
-    level: str = Form(...),
-    gender: str = Form(...),
+    level: int = Form(...),
+    gender: int = Form(...),
 ) -> JSONResponse:
     repo = MemberSignupRepo(sess)
     model = Member(
         signup_id=signup_id,
+        trainer_id=trainer_id,
         age=age,
         level=level,
         gender=gender,
@@ -169,3 +184,13 @@ def add_member(
         },
         status_code=500,
     )
+
+
+@router.get("/signup/member/list")
+def list_members(sess: Annotated[Session, Depends(sess_db)]) -> JSONResponse:
+    repo = MemberSignupRepo(sess)
+    members: List[Member] = repo.list_members()
+
+    data = [MemberOut.from_orm(obj) for obj in members]
+
+    return JSONResponse(content=jsonable_encoder(data), status_code=200)
