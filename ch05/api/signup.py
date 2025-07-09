@@ -1,14 +1,19 @@
-from typing import Annotated, Generator
+from typing import Annotated, Generator, Union
 
 from database import SessionFactory
-from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
-from models.data.signup import SignUp
-from models.req.signup import SignUpReq, UserReq
-from repo.signup import SignUpRepo
+from fastapi import APIRouter, Depends, Form, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from models.data.signup import Member, SignUp
+from models.req.signup import SignUpReq, UserReq, UserType
+from repo.signup import MemberSignupRepo, SignUpRepo
 from sqlalchemy.orm import Session
 
 router = APIRouter()
+
+
+def build_next_url(request: Request, relative_path: str) -> str:
+    path_prefix = request.url.path.split("/")[1]
+    return f"/{path_prefix}{relative_path}"
 
 
 def sess_db() -> Generator[Session, None, None]:
@@ -19,22 +24,34 @@ def sess_db() -> Generator[Session, None, None]:
         db.close()
 
 
-@router.post("/signup/add")
+@router.get("/signup/unknown", response_model=None)
+def signup_root() -> JSONResponse:
+    return JSONResponse(content={"message": "Signup API"}, status_code=201)
+
+
+@router.post("/signup/add", response_model=None)
 def add_signup(
-    req: SignUpReq, sess: Annotated[Session, Depends(sess_db)]
-) -> JSONResponse:
+    request: Request,
+    req: SignUpReq,
+    sess: Annotated[Session, Depends(sess_db)],
+) -> Union[RedirectResponse, JSONResponse]:
     repo: SignUpRepo = SignUpRepo(sess)
     model = SignUp(username=req.username, password=req.password, user_type=req.usertype)
-    success = repo.add(model)
+    model = repo.add(model)
 
-    if success:
-        return JSONResponse(
-            content={
-                "message": f"Signup successful for user: {req.username}",
-                "data": {},
-            },
-            status_code=201,
-        )
+    if model is not None:
+        signup_id = model.id
+
+        if req.usertype == UserType.MEMBER:
+            next_url = f"/signup/member/add?signup_id={signup_id}"
+        elif req.usertype == UserType.TRAINER:
+            next_url = f"/signup/trainer/add?signup_id={signup_id}"
+        else:
+            next_url = "/signup/unknown"
+
+        next_url = build_next_url(request, next_url)
+
+        return RedirectResponse(url=next_url, status_code=303)
 
     return JSONResponse(
         content={
@@ -93,6 +110,61 @@ def delete_signup(
     return JSONResponse(
         content={
             "message": f"Delete failed for user: {req.username}",
+            "data": {},
+        },
+        status_code=500,
+    )
+
+
+@router.get("/signup/member/add", response_class=HTMLResponse)
+def get_member_form(signup_id: int = Query(...)) -> HTMLResponse:
+    html_content = f"""
+    <html>
+        <head><title>Complete Member Info</title></head>
+        <body>
+            <h2>Complete Info for signup_id={signup_id}</h2>
+            <form action="/ch05/signup/member/add" method="post">
+                <input type="hidden" name="signup_id" value="{signup_id}" />
+                Age: <input type="number" name="age" /><br/>
+                Level: <input type="text" name="level" /><br/>
+                Gender: <input type="text" name="gender" /><br/>
+                <input type="submit" value="Submit" />
+            </form>
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+
+@router.post("/signup/member/add")
+def add_member(
+    sess: Annotated[Session, Depends(sess_db)],
+    signup_id: int = Form(...),
+    age: int = Form(...),
+    level: str = Form(...),
+    gender: str = Form(...),
+) -> JSONResponse:
+    repo = MemberSignupRepo(sess)
+    model = Member(
+        signup_id=signup_id,
+        age=age,
+        level=level,
+        gender=gender,
+    )
+    success = repo.add(model)
+
+    if success:
+        return JSONResponse(
+            content={
+                "message": "MemberSignUp successful",
+                "data": {},
+            },
+            status_code=201,
+        )
+
+    return JSONResponse(
+        content={
+            "message": "MemberSignUp failed",
             "data": {},
         },
         status_code=500,

@@ -40,6 +40,7 @@ class MemberReq(BaseModel):
 
     age: int
     level: MemberLevel
+    gender: Gender
 
 
 class TrainerReq(BaseModel):

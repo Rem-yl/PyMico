@@ -1,3 +1,5 @@
+from typing import Optional
+
 from database import Base
 from log import logger
 from models.data.signup import Member, SignUp, Trainer
@@ -13,7 +15,7 @@ class SignUpRepo:
             Base.metadata.create_all(self.sess.bind)
             self._init = False
 
-    def add(self, model: SignUp) -> bool:
+    def add(self, model: SignUp) -> Optional[SignUp]:
         try:
             exist_signup = (
                 self.sess.query(SignUp).filter_by(username=model.username).first()
@@ -22,19 +24,19 @@ class SignUpRepo:
                 logger.warning(
                     f"SignUp failed: username '{model.username}' already exists."
                 )
-                return True
+                return exist_signup
 
             self.sess.add(model)
             self.sess.commit()
             logger.info(f"SignUp successful for user: {model.username}")
-            return True
+            return model
 
         except Exception as e:
             self.sess.rollback()
             logger.error(f"Error during SignUp for user {model.username}: {e}")
-            return False
+            return None
 
-    def update(self, model: SignUp, new_model: SignUp) -> bool:
+    def update(self, model: SignUp, new_model: SignUp) -> Optional[SignUp]:
         try:
             exist_signup = (
                 self.sess.query(SignUp).filter_by(username=model.username).first()
@@ -44,25 +46,25 @@ class SignUpRepo:
                 logger.warning(
                     f"Update failed: username '{model.username}' does not exist."
                 )
-                return False
+                return None
 
             if model.password != exist_signup.password:
                 logger.warning(
                     f"Update failed: invalid password for username '{model.username}'."
                 )
-                return False
+                return None
 
             exist_signup.username = new_model.username
             exist_signup.password = new_model.password
             exist_signup.user_type = new_model.user_type
             self.sess.commit()
             logger.info(f"Update successful for user: {model.username}")
-            return True
+            return new_model
 
         except Exception as e:
             self.sess.rollback()
             logger.error(f"Error during Update for user {model.username}: {e}")
-            return False
+            return None
 
     def delete(self, username: str, password: str) -> bool:
         try:
@@ -92,26 +94,29 @@ class MemberSignupRepo:
     def __init__(self, sess: Session) -> None:
         self.sess = sess
 
-    def add(self, model: Member) -> bool:
+    def add(self, model: Member) -> Optional[Member]:
         try:
             exist_member = (
-                self.sess.query(Member).filter_by(username=model.username).first()
+                self.sess.query(Member).filter_by(signup_id=model.signup_id).first()
             )
             if exist_member:
                 logger.warning(
-                    f"MemberSignUp failed: username '{model.username}' already exists."
+                    f"MemberSignUp failed: username '{exist_member.signup.username}' already exists."
                 )
-                return True
+                return exist_member
 
             self.sess.add(model)
             self.sess.commit()
-            logger.info(f"MemberSignUp successful for user: {model.username}")
-            return True
+            self.sess.refresh(model)
+            logger.info(f"MemberSignUp successful for user: {model.signup.username}")
+            return model
 
         except Exception as e:
             self.sess.rollback()
-            logger.error(f"Error during MemberSignUp for user {model.username}: {e}")
-            return False
+            logger.error(
+                f"Error during MemberSignUp for user signup id {model.signup_id}: {e}"
+            )
+            return None
 
     def delete(self, username: str, password: str) -> bool:
         try:
