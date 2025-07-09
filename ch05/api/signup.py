@@ -4,9 +4,16 @@ from database import SessionFactory
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from models.data.signup import Member, SignUp
-from models.req.signup import MemberOut, SignUpOut, SignUpReq, UserReq, UserType
-from repo.signup import MemberSignupRepo, SignUpRepo
+from models.data.signup import Member, SignUp, Trainer
+from models.req.signup import (
+    MemberOut,
+    SignUpOut,
+    SignUpReq,
+    TrainerOut,
+    UserReq,
+    UserType,
+)
+from repo.signup import MemberSignupRepo, SignUpRepo, TrainerSignupRepo
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -149,6 +156,28 @@ def get_member_form(signup_id: int = Query(...)) -> HTMLResponse:
     return HTMLResponse(content=html_content)
 
 
+@router.get("/signup/trainer/add", response_class=HTMLResponse)
+def get_trainer_form(signup_id: int = Query(...)) -> HTMLResponse:
+    html_content = f"""
+    <html>
+        <head><title>Complete Trainer Info</title></head>
+        <body>
+            <h2>Complete Info for signup_id={signup_id}</h2>
+            <form action="/ch05/signup/trainer/add" method="post">
+                <input type="hidden" name="signup_id" value="{signup_id}" />
+                Age: <input type="number" name="age" /><br/>
+                Level: <input type="text" name="level" /><br/>
+                Gender: <input type="text" name="gender" /><br/>
+                Height: <input type="number" name="height" /><br/>
+                Weight: <input type="number" name="weight" /><br/>
+                <input type="submit" value="Submit" />
+            </form>
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+
 @router.post("/signup/member/add")
 def add_member(
     sess: Annotated[Session, Depends(sess_db)],
@@ -192,5 +221,54 @@ def list_members(sess: Annotated[Session, Depends(sess_db)]) -> JSONResponse:
     members: List[Member] = repo.list_members()
 
     data = [MemberOut.from_orm(obj) for obj in members]
+
+    return JSONResponse(content=jsonable_encoder(data), status_code=200)
+
+
+@router.post("/signup/trainer/add")
+def add_trainer(
+    sess: Annotated[Session, Depends(sess_db)],
+    signup_id: int = Form(...),
+    age: int = Form(...),
+    level: int = Form(...),
+    gender: int = Form(...),
+    height: float = Form(...),
+    weight: float = Form(...),
+) -> JSONResponse:
+    repo = TrainerSignupRepo(sess)
+    model = Trainer(
+        signup_id=signup_id,
+        age=age,
+        level=level,
+        gender=gender,
+        height=height,
+        weight=weight,
+    )
+    success = repo.add(model)
+
+    if success:
+        return JSONResponse(
+            content={
+                "message": "TrainerSignUp successful",
+                "data": {},
+            },
+            status_code=201,
+        )
+
+    return JSONResponse(
+        content={
+            "message": "TrainerSignUp failed",
+            "data": {},
+        },
+        status_code=500,
+    )
+
+
+@router.get("/signup/trainer/list")
+def list_trainers(sess: Annotated[Session, Depends(sess_db)]) -> JSONResponse:
+    repo = TrainerSignupRepo(sess)
+    trainers: List[Trainer] = repo.list_trainers()
+
+    data = [TrainerOut.from_orm(obj) for obj in trainers]
 
     return JSONResponse(content=jsonable_encoder(data), status_code=200)

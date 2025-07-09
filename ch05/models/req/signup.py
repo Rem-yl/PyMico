@@ -76,3 +76,16 @@ class TrainerReq(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class TrainerOut(BaseModel):
+    id: int
+    signup: SignUpOut
+    age: int
+    level: MemberLevel
+    gender: Gender
+    height: float
+    weight: float
+
+    class Config:
+        from_attributes = True

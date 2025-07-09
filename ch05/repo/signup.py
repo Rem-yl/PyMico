@@ -126,33 +126,11 @@ class MemberSignupRepo:
             )
             return None
 
-    def delete(self, username: str, password: str) -> bool:
-        try:
-            member = self.sess.query(Member).filter_by(username=username).first()
-            if member is None:
-                logger.warning(f"Delete failed: username '{username}' does not exist.")
-                return False
-
-            if member.password.scalar() != password:
-                logger.warning(
-                    f"Delete failed: invalid password for username '{username}'."
-                )
-                return False
-
-            self.sess.delete(member)
-            self.sess.commit()
-            logger.info(f"Delete successful for user: {username}")
-            return True
-
-        except Exception as e:
-            self.sess.rollback()
-            logger.error(f"Error during Delete for user {username}: {e}")
-            return False
-
     def list_members(self) -> List[Member]:
         try:
-            members: List[Member] = self.sess.query(Member).all()
+            members: List[Member] = self.sess.query(Member).join(Member.signup).all()
             return members
+
         except Exception as e:
             logger.error(f"Error during list_members: {e}")
             return []
@@ -162,46 +140,34 @@ class TrainerSignupRepo:
     def __init__(self, sess: Session) -> None:
         self.sess = sess
 
-    def add(self, model: Trainer) -> bool:
+    def add(self, model: Trainer) -> Optional[Trainer]:
         try:
             exist_trainer = (
-                self.sess.query(Trainer).filter_by(username=model.username).first()
+                self.sess.query(Trainer).filter_by(signup_id=model.signup_id).first()
             )
             if exist_trainer:
                 logger.warning(
-                    f"TrainerSignUp failed: username '{model.username}' already exists."
+                    f"TrainerSignUp failed: username '{exist_trainer.signup.username}' already exists."
                 )
-                return True
+                return exist_trainer
 
             self.sess.add(model)
             self.sess.commit()
-            logger.info(f"TrainerSignUp successful for user: {model.username}")
-            return True
+            self.sess.refresh(model)
+            logger.info(f"TrainerSignUp successful for user: {model.signup.username}")
+            return model
 
         except Exception as e:
             self.sess.rollback()
-            logger.error(f"Error during TrainerSignUp for user {model.username}: {e}")
-            return False
+            logger.error(
+                f"Error during TrainerSignUp for user signup id {model.signup_id}: {e}"
+            )
+            return None
 
-    def delete(self, username: str, password: str) -> bool:
+    def list_trainers(self) -> List[Trainer]:
         try:
-            trainer = self.sess.query(Trainer).filter_by(username=username).first()
-            if trainer is None:
-                logger.warning(f"Delete failed: username '{username}' does not exist.")
-                return False
-
-            if trainer.password.scalar() != password:
-                logger.warning(
-                    f"Delete failed: invalid password for username '{username}'."
-                )
-                return False
-
-            self.sess.delete(trainer)
-            self.sess.commit()
-            logger.info(f"Delete successful for user: {username}")
-            return True
-
+            trainers: List[Trainer] = self.sess.query(Trainer).all()
+            return trainers
         except Exception as e:
-            self.sess.rollback()
-            logger.error(f"Error during Delete for user {username}: {e}")
-            return False
+            logger.error(f"Error during list_trainers: {e}")
+            return []
