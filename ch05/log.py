@@ -6,7 +6,7 @@ logger = logging.getLogger("PyMico")
 logger.setLevel(logging.DEBUG)
 
 # Create a file handler that logs debug and higher level messages
-handler = RotatingFileHandler("pymico.log", maxBytes=2000, backupCount=5)
+handler = RotatingFileHandler("pymico.log", maxBytes=200000, backupCount=5)
 handler.setLevel(logging.DEBUG)
 # Create a console handler that logs warning and higher level messages
 console_handler = logging.StreamHandler()
