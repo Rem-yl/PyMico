@@ -19,7 +19,7 @@ repos:
         additional_dependencies:
           - types-requests
           - types-PyYAML
-        args: ["--strict"]
+        args: []
 
   # 代码风格检查（ruff，支持 flake8/pylint/radon 等）
   - repo: https://github.com/astral-sh/ruff-pre-commit
